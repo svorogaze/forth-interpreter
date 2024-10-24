@@ -1,7 +1,6 @@
 #include "Parser.h"
 #include <regex>
-using Lexeme::LexemeType;
-
+#include "Lexeme.h"
 std::vector<Lexeme> Parser::GetResult() {
     return result;
 }
@@ -33,22 +32,22 @@ Parser::Parser(const std::string& input, const std::vector<std::string>& keyword
     }
     std::string cur_str;
     for (int i = 0; i < input.size(); ++i) {
-        char c = cur_str[i];
-        if (c == ' ') {
+        char c = input[i];
+        if (c == ' ' || cur_str == " ") {
             Lexeme current;
             current.position = i - cur_str.size();
-            current.type = LexemeType::kError;
+            current.type = Lexeme::LexemeType::kError;
             current.text = cur_str;
             if (keyword_trie.Contains(cur_str)) {
-                current.type = LexemeType::kKeyword;
+                current.type = Lexeme::LexemeType::kKeyword;
             } else if (cur_str == " ") {
-                current.type = LexemeType::kWhitespace;
+                current.type = Lexeme::LexemeType::kWhitespace;
             } else if (IsLiteral(cur_str)) {
-                current.type = LexemeType::kLiteral;
+                current.type = Lexeme::LexemeType::kLiteral;
             } else if (operator_trie.Contains(cur_str)) {
-                current.type = LexemeType::kOperator;
+                current.type = Lexeme::LexemeType::kOperator;
             } else {
-                current.type = LexemeType::kIdentifier;
+                current.type = Lexeme::LexemeType::kIdentifier;
             }
             result.push_back(current);
             cur_str.clear();
@@ -58,18 +57,18 @@ Parser::Parser(const std::string& input, const std::vector<std::string>& keyword
     Trie defined_identifiers;
     bool defining_identifier = false;
     for (auto lexeme : result) {
-        if (lexeme.type == LexemeType::kIdentifier && !defined_identifiers.Contains(lexeme.text)) {
+        if (lexeme.type == Lexeme::LexemeType::kIdentifier && !defined_identifiers.Contains(lexeme.text)) {
             if (!defining_identifier) {
-                lexeme.type = LexemeType::kError;
+                lexeme.type = Lexeme::LexemeType::kError;
             } else {
                 defined_identifiers.Add(lexeme.text);
                 defining_identifier = false;
             }
-        } else if (lexeme.type == LexemeType::kKeyword && (lexeme.text == ":" || lexeme.text == "CREATE")) {
+        } else if (lexeme.type == Lexeme::LexemeType::kKeyword && (lexeme.text == ":" || lexeme.text == "CREATE")) {
             defining_identifier = true;
-        } else if (defining_identifier && lexeme.type != LexemeType::kWhitespace) {
+        } else if (defining_identifier && lexeme.type != Lexeme::LexemeType::kWhitespace) {
             // we don't want non-identifiers after we started defining new one
-            lexeme.type = LexemeType::kError;
+            lexeme.type = Lexeme::LexemeType::kError;
         }
     }
 }

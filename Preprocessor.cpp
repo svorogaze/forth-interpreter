@@ -25,4 +25,26 @@ void Preprocessor::ToOneLine() {
     }, ' ');
 }
 
+void Preprocessor::RemoveComments() {
+    // braces are for comments in forth
+    // so if character is inside at least one pair of braces it is irrevelant
+    int balance = 0;
+    std::string result;
+    for (auto c : current_text) {
+        if (c == '(') {
+            balance++;
+        }
+        if (balance == 0) {
+            result += c;
+        }
+        if (c == ')') {
+            balance--;
+        }
+    }
+
+    current_text = result;
+}
+
+
+
 

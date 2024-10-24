@@ -20,6 +20,8 @@ private:
 
 };
 
+std::string ToString(Lexeme::LexemeType type);
+
 
 
 #endif //LEXEME_H

@@ -8,6 +8,7 @@ public:
     explicit Preprocessor(std::string file_path);
     std::string GetCurrentText();
     void ToOneLine(); // transform file to one line for easier parsing
+    void RemoveComments();
 private:
 
 public:

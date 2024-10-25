@@ -14,8 +14,8 @@ int main(int argc, char* argv[]) {
 
     const std::string code_file(argv[1]);
     Preprocessor preprocessor(code_file);
-    preprocessor.ToOneLine();
     preprocessor.RemoveComments();
+    preprocessor.ToOneLine();
     std::string processed_string = preprocessor.GetCurrentText();
 
     std::vector<std::string> keywords;

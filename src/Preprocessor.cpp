@@ -28,13 +28,21 @@ void Preprocessor::ToOneLine() {
 void Preprocessor::RemoveComments() {
     // braces are for comments in forth
     // so if character is inside at least one pair of braces it is irrevelant
+    // also \ comments to new line so we remove it too
     int balance = 0;
+    bool slash_comment = false;
     std::string result;
     for (auto c : current_text) {
+        if (c == '\\') {
+            slash_comment = true;
+        }
+        if (c == '\n') {
+            slash_comment = false;
+        }
         if (c == '(') {
             balance++;
         }
-        if (balance == 0) {
+        if (balance == 0 && !slash_comment) {
             result += c;
         }
         if (c == ')') {

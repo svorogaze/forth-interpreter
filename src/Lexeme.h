@@ -12,8 +12,10 @@ public:
         kOperator,
         kKeyword,
         kError,
+        kControlFlowConstruct,
+
     };
-    int position;
+    int row, column;
     LexemeType type;
     std::string text;
 private:

@@ -15,7 +15,6 @@ int main(int argc, char* argv[]) {
     const std::string code_file(argv[1]);
     Preprocessor preprocessor(code_file);
     preprocessor.RemoveComments();
-    preprocessor.ToOneLine();
     std::string processed_string = preprocessor.GetCurrentText();
 
     std::vector<std::string> keywords;
@@ -33,7 +32,10 @@ int main(int argc, char* argv[]) {
         "DROP",
         ".s",
         "mod",
-        "."
+        ".",
+        "+c",
+        "+",
+        "-c"
     };
 
     Parser parser(processed_string, keywords, operators);

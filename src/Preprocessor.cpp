@@ -27,8 +27,7 @@ void Preprocessor::ToOneLine() {
 
 void Preprocessor::RemoveComments() {
     // braces are for comments in forth
-    // so if character is inside at least one pair of braces it is irrevelant
-    // also \ comments to new line so we remove it too
+    // so if character is inside at least one pair of braces or goes after \ in line it is irrevelant
     int balance = 0;
     bool slash_comment = false;
     std::string result;

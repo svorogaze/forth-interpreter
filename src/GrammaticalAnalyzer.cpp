@@ -88,12 +88,37 @@ void GrammaticalAnalyzer::CodeBlock() {
     }
 }
 
+void GrammaticalAnalyzer::Statements() {
+    while (Statement()) {}
+}
+
+bool GrammaticalAnalyzer::Statement() {
+    if (GetCurrentLexeme().text == "VARIABLE") { // create var
+        VariableDefinition();
+        return true;
+    }
+    if (GetCurrentLexeme().text == "CREATE") { // creat array
+        ArrayDefinition();
+        return true;
+    }
+    if (GetCurrentLexeme().type == Lexeme::LexemeType::kOperator) {
+        NextLexeme();
+        return true;
+    }
+    if (GetCurrentLexeme().type == Lexeme::LexemeType::kLiteral ||
+        GetCurrentLexeme().type == Lexeme::LexemeType::kIdentifier) {
+        NextLexeme();
+        return true;
+    }
+    return false;
+}
+
 void GrammaticalAnalyzer::ControlFlowConstruct() {
     if (GetCurrentLexeme().text == "BEGIN") {
         While();
     } else if (GetCurrentLexeme().text == "DO") {
         For();
-    } else if (GetCurrentLexeme().text == "If") {
+    } else if (GetCurrentLexeme().text == "IF") {
         If();
     } else if (GetCurrentLexeme().text == "CASE") {
         Switch();
@@ -103,8 +128,8 @@ void GrammaticalAnalyzer::ControlFlowConstruct() {
 }
 
 void GrammaticalAnalyzer::If() {
-    if (GetCurrentLexeme().text != "If") {
-        ThrowException("If");
+    if (GetCurrentLexeme().text != "IF") {
+        ThrowException("IF");
     }
     NextLexeme();
     CodeBlock();
@@ -171,31 +196,6 @@ void GrammaticalAnalyzer::While() {
         ThrowException("REPEAT");
     }
     NextLexeme();
-}
-
-void GrammaticalAnalyzer::Statements() {
-    while (Statement()) {}
-}
-
-bool GrammaticalAnalyzer::Statement() {
-    if (GetCurrentLexeme().text == "VARIABLE") { // create var
-        VariableDefinition();
-        return true;
-    }
-    if (GetCurrentLexeme().text == "CREATE") { // creat array
-        ArrayDefinition();
-        return true;
-    }
-    if (GetCurrentLexeme().type == Lexeme::LexemeType::kOperator) {
-        NextLexeme();
-        return true;
-    }
-    if (GetCurrentLexeme().type == Lexeme::LexemeType::kLiteral ||
-        GetCurrentLexeme().type == Lexeme::LexemeType::kIdentifier) {
-        NextLexeme();
-        return true;
-    }
-    return false;
 }
 
 void GrammaticalAnalyzer::VariableDefinition() {

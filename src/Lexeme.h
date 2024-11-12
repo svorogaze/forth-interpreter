@@ -13,7 +13,8 @@ public:
         kKeyword,
         kError,
         kControlFlowConstruct,
-
+        kFunctionDefinitionStart,
+        kFunctionDefinitionEnd
     };
     int row, column;
     LexemeType type;

@@ -3,8 +3,10 @@
 #include <float.h>
 #include <stdexcept>
 #include <iostream>
-GrammaticalAnalyzer::GrammaticalAnalyzer(std::vector<Lexeme> lexemes) : lexemes(lexemes) {
-
+GrammaticalAnalyzer::GrammaticalAnalyzer(std::vector<Lexeme> lexemes, std::vector<std::string> code_block_enders_) : lexemes(lexemes) {
+    for (auto s : code_block_enders_) {
+        code_block_enders.insert(s);
+    }
 }
 
 Lexeme GrammaticalAnalyzer::GetCurrentLexeme() {
@@ -30,8 +32,8 @@ bool GrammaticalAnalyzer::IsFished() {
 
 void GrammaticalAnalyzer::ThrowException(std::string expected) {
     auto l = GetCurrentLexeme();
-    std::string exception_text = "expected: " + expected + " but got " + l.text
-    + " at " + std::to_string(l.row) + " row " + std::to_string(l.column) + " column\n";
+    std::string exception_text = "Expected: " + expected + "\nGot: " + l.text
+    + "\nat " + std::to_string(l.row) + " row " + std::to_string(l.column) + " column\n";
     throw std::runtime_error(exception_text);
 }
 
@@ -65,30 +67,25 @@ void GrammaticalAnalyzer::FunctionDefinition() {
 void GrammaticalAnalyzer::CodeBlock() {
     while (!IsFished() &&
         code_block_enders.find(GetCurrentLexeme().text) == code_block_enders.end()) {
-        if (GetCurrentLexeme().type == Lexeme::LexemeType::kControlFlowConstruct) {
+        if (GetCurrentLexeme().type == Lexeme::LexemeType::kKeyword) {
             ControlFlowConstruct();
         } else {
-                Statement();
+            Statement();
         }
     }
 }
 
 void GrammaticalAnalyzer::ControlFlowConstruct() {
-    switch (GetCurrentLexeme().text) {
-        case "BEGIN":
-            While();
-            break;
-        case "DO":
-            For();
-            break;
-        case "IF":
-            If();
-            break;
-        case "CASE":
-            Switch();
-            break;
-        default:
-            ThrowException("control flow construct");
+    if (GetCurrentLexeme().text == "BEGIN") {
+        While();
+    } else if (GetCurrentLexeme().text == "DO") {
+        For();
+    } else if (GetCurrentLexeme().text == "IF") {
+        If();
+    } else if (GetCurrentLexeme().text == "CASE") {
+        Switch();
+    } else {
+        ThrowException("Control flow construct");
     }
 }
 
@@ -124,6 +121,7 @@ void GrammaticalAnalyzer::Switch() {
     if (GetCurrentLexeme().text != "CASE") {
         ThrowException("CASE");
     }
+    NextLexeme();
     while (GetCurrentLexeme().text != "ENDCASE") {
         if (GetCurrentLexeme().type != Lexeme::LexemeType::kLiteral) {
             ThrowException("literal");
@@ -169,6 +167,14 @@ void GrammaticalAnalyzer::Statements() {
 }
 
 bool GrammaticalAnalyzer::Statement() {
+    if (GetCurrentLexeme().text == "VARIABLE") {
+        VariableDefinition();
+        return true;
+    }
+    if (GetCurrentLexeme().text == "CREATE") {
+        ArrayDefinition();
+        return true;
+    }
     if (GetCurrentLexeme().type == Lexeme::LexemeType::kOperator) {
         NextLexeme();
         return true;
@@ -176,14 +182,6 @@ bool GrammaticalAnalyzer::Statement() {
     if (GetCurrentLexeme().type == Lexeme::LexemeType::kLiteral ||
         GetCurrentLexeme().type == Lexeme::LexemeType::kIdentifier) {
         NextLexeme();
-        return true;
-    }
-    if (GetCurrentLexeme().text == "VARIABLE") {
-        VariableDefinition();
-        return true;
-    }
-    if (GetCurrentLexeme().text == "CREATE") {
-        ArrayDefinition();
         return true;
     }
     return false;
@@ -233,7 +231,7 @@ void GrammaticalAnalyzer::Analyze() {
     try {
         Program();
     } catch (std::exception& e) {
-        std::cout << "Interpretation error: "  << e.what();
+        std::cout << "Syntax error:\n"  << e.what();
         exit(0);
     }
 }

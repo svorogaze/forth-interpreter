@@ -3,45 +3,96 @@
 #include <string>
 #include <fstream>
 
+#include "GrammaticalAnalyzer.h"
 #include "Preprocessor.h"
 #include "Parser.h"
 #include "Lexeme.h"
 
-int main(int argc, char* argv[]) {
-    if (argc != 3) {
+int main(int argc, char** argv) {
+    std::vector<std::string> keywords = {
+        "BEGIN",
+        "WHILE",
+        "REPEAT",
+        "DO",
+        "LOOP",
+        "IF",
+        "ENDIF",
+        "ELSE",
+        "CASE",
+        "OF",
+        "ENDOF",
+        "ENDCASE"
+    };
+
+    std::vector<std::string> operators = {
+        "dup",
+        "drop",
+        "swap",
+        "over",
+        "swap",
+        "rot",
+        "pick",
+        "nip",
+        "tuck",
+        "roll",
+        "+",
+        "s+",
+        "*",
+        "/",
+        "-",
+        "%",
+        "negate",
+        "invert",
+        "lshift",
+        "rshift",
+        "<",
+        ">",
+        "<=",
+        ">=",
+        "=",
+        "s=",
+        "and",
+        "or",
+        "xor",
+        "not",
+        "!",
+        "f!",
+        "c!",
+        "@",
+        "c@",
+        "f@",
+        "sinput",
+        "finput",
+        "input",
+        "type",
+        ".",
+        ".s",
+        "emit",
+        "leave",
+        "continue",
+        "VARIABLE",
+        "CREATE",
+        "allot",
+        "chars",
+        "floats",
+        "cells",
+        "tofloat",
+        "tocell"
+    };
+    if (argc != 2) {
         throw std::logic_error("number of command line arguments arguments doesn't match");
     }
 
-    const std::string code_file(argv[1]);
+    const std::string code_file(argv[0]);
     Preprocessor preprocessor(code_file);
     preprocessor.RemoveComments();
     std::string processed_string = preprocessor.GetCurrentText();
 
-    std::vector<std::string> keywords;
-    std::ifstream keywords_file(argv[2]);
-    std::string keyword;
-    while (keywords_file >> keyword) {
-        keywords.push_back(keyword);
-    }
-
-    std::vector<std::string> operators = {
-        "+",
-        "*",
-        "/",
-        "-",
-        "DROP",
-        ".s",
-        "mod",
-        ".",
-        "+c",
-        "+",
-        "-c"
-    };
 
     Parser parser(processed_string, keywords, operators);
     auto lexemes = parser.GetResult();
-    std::cout << "Finished!\n";
-    for (auto lexeme : lexemes) {
-        std::cout << lexeme.text << ' ' << lexeme.position << ' ' << ToString(lexeme.type) << '\n';
-    }
+
+    GrammaticalAnalyzer grammatical_analyzer(lexemes, {";", "REPEAT", "LOOP", "ELSE", "ENDOF", ":"});
+    grammatical_analyzer.Analyze();
+
 }

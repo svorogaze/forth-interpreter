@@ -5,7 +5,7 @@
 #include <set>
 class GrammaticalAnalyzer {
 public:
-    GrammaticalAnalyzer(std::vector<Lexeme> lexemes);
+    GrammaticalAnalyzer(std::vector<Lexeme> lexemes, std::vector<std::string> code_block_enders);
     void Analyze();
 private:
     Lexeme GetCurrentLexeme();
@@ -29,7 +29,6 @@ private:
     std::vector<Lexeme> lexemes;
     int current_lexeme_index = 0;
     std::set<std::string> code_block_enders;
-    std::set<std::string> operators;
 };
 
 

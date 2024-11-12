@@ -41,8 +41,10 @@ void Preprocessor::RemoveComments() {
         if (c == '(') {
             balance++;
         }
-        if (balance == 0 && !slash_comment) {
+        if ((balance == 0 && !slash_comment) || c == '\n') {
             result += c;
+        } else {
+            result += ' ';
         }
         if (c == ')') {
             balance--;

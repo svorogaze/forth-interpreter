@@ -39,7 +39,7 @@ Parser::Parser(const std::string& input, const std::vector<std::string>& keyword
     int current_column = 0;
     for (int i = 0; i < input.size(); ++i) {
         char c = input[i];
-        if (IsDelimeter(c)) {
+        if (IsDelimeter(c) && !cur_str.empty()) {
             Lexeme current;
             current.row = line;
             current.column = current_column;
@@ -51,12 +51,16 @@ Parser::Parser(const std::string& input, const std::vector<std::string>& keyword
                 current.type = Lexeme::LexemeType::kLiteral;
             } else if (operator_trie.Contains(cur_str)) {
                 current.type = Lexeme::LexemeType::kOperator;
+            } else if (cur_str == ":") {
+                current.type = Lexeme::LexemeType::kFunctionDefinitionStart;
+            } else if (cur_str == ";") {
+                current.type = Lexeme::LexemeType::kFunctionDefinitionEnd;
             } else {
                 current.type = Lexeme::LexemeType::kIdentifier;
             }
             result.push_back(current);
             cur_str.clear();
-        } else {
+        } else if (!IsDelimeter(c)) {
             cur_str += c;
         }
         if (c == '\n') {

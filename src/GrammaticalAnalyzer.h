@@ -5,14 +5,14 @@
 #include <set>
 class GrammaticalAnalyzer {
 public:
-    GrammaticalAnalyzer(std::vector<Lexeme> lexemes, std::vector<std::string> code_block_enders);
+    GrammaticalAnalyzer(const std::vector<Lexeme>&, const std::vector<std::string>&);
     void Analyze();
 private:
     Lexeme GetCurrentLexeme();
     void NextLexeme();
-    void ThrowException(std::string expected);
+    void ThrowException(const std::string&);
     bool IsFished();
-    //Grammar of language
+    // Grammar of language
     void Program();
     void FunctionDefinition();
     void CodeBlock();
@@ -26,6 +26,7 @@ private:
     void VariableDefinition();
     void ArrayDefinition();
     void SizeOperators();
+
     std::vector<Lexeme> lexemes;
     int current_lexeme_index = 0;
     std::set<std::string> code_block_enders;

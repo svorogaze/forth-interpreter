@@ -3,50 +3,51 @@
 #include <float.h>
 #include <stdexcept>
 #include <iostream>
-GrammaticalAnalyzer::GrammaticalAnalyzer(std::vector<Lexeme> lexemes, std::vector<std::string> code_block_enders_) : lexemes(lexemes) {
-    for (auto s : code_block_enders_) {
+#include <utility>
+GrammaticalAnalyzer::GrammaticalAnalyzer(const std::vector<Lexeme>& _lexemes,
+                                         const std::vector<std::string>& code_block_enders_)
+        : lexemes(_lexemes) {
+    for (const auto& s : code_block_enders_) {
         code_block_enders.insert(s);
     }
 }
 
 Lexeme GrammaticalAnalyzer::GetCurrentLexeme() {
     if (current_lexeme_index >= lexemes.size()) {
-        // construct dummy lexeme so all ifs fail and we throw exception
-        Lexeme dummy;
-        dummy.text = "END OF FILE";
-        dummy.type = Lexeme::LexemeType::kError;
-        dummy.row = lexemes.back().row;
-        dummy.column = lexemes.back().column;
-        return dummy;
+        Lexeme lex;
+        lex.text = "END OF FILE";
+        lex.type = Lexeme::LexemeType::kError;
+        lex.row = lexemes.back().row;
+        lex.column = lexemes.back().column;
+        return lex;
     }
     return lexemes[current_lexeme_index];
 }
 
 void GrammaticalAnalyzer::NextLexeme() {
-    current_lexeme_index++;
+    ++current_lexeme_index;
 }
 
 bool GrammaticalAnalyzer::IsFished() {
     return current_lexeme_index >= lexemes.size();
 }
 
-void GrammaticalAnalyzer::ThrowException(std::string expected) {
+void GrammaticalAnalyzer::ThrowException(const std::string& expected) {
     auto l = GetCurrentLexeme();
     std::string exception_text = "Expected: " + expected + "\nGot: " + l.text
-    + "\nat " + std::to_string(l.row) + " row " + std::to_string(l.column) + " column\n";
+                                 + "\nat " + std::to_string(l.row) + " row " + std::to_string(l.column) + " column\n";
     throw std::runtime_error(exception_text);
 }
 
 void GrammaticalAnalyzer::Program() {
     while (!IsFished()) {
-        if (GetCurrentLexeme().text == ":") {
+        if (GetCurrentLexeme().text == ":") { // forth function
             FunctionDefinition();
         } else {
             CodeBlock();
         }
     }
 }
-
 
 void GrammaticalAnalyzer::FunctionDefinition() {
     if (GetCurrentLexeme().text != ":") {
@@ -66,7 +67,7 @@ void GrammaticalAnalyzer::FunctionDefinition() {
 
 void GrammaticalAnalyzer::CodeBlock() {
     while (!IsFished() &&
-        code_block_enders.find(GetCurrentLexeme().text) == code_block_enders.end()) {
+           code_block_enders.find(GetCurrentLexeme().text) == code_block_enders.end()) {
         if (GetCurrentLexeme().type == Lexeme::LexemeType::kKeyword) {
             ControlFlowConstruct();
         } else {
@@ -80,7 +81,7 @@ void GrammaticalAnalyzer::ControlFlowConstruct() {
         While();
     } else if (GetCurrentLexeme().text == "DO") {
         For();
-    } else if (GetCurrentLexeme().text == "IF") {
+    } else if (GetCurrentLexeme().text == "If") {
         If();
     } else if (GetCurrentLexeme().text == "CASE") {
         Switch();
@@ -90,8 +91,8 @@ void GrammaticalAnalyzer::ControlFlowConstruct() {
 }
 
 void GrammaticalAnalyzer::If() {
-    if (GetCurrentLexeme().text != "IF") {
-        ThrowException("IF");
+    if (GetCurrentLexeme().text != "If") {
+        ThrowException("If");
     }
     NextLexeme();
     CodeBlock();
@@ -161,17 +162,15 @@ void GrammaticalAnalyzer::While() {
 }
 
 void GrammaticalAnalyzer::Statements() {
-    while (Statement()) {
-
-    }
+    while (Statement()) {}
 }
 
 bool GrammaticalAnalyzer::Statement() {
-    if (GetCurrentLexeme().text == "VARIABLE") {
+    if (GetCurrentLexeme().text == "VARIABLE") { // create var
         VariableDefinition();
         return true;
     }
-    if (GetCurrentLexeme().text == "CREATE") {
+    if (GetCurrentLexeme().text == "CREATE") { // creat array
         ArrayDefinition();
         return true;
     }
@@ -230,7 +229,7 @@ void GrammaticalAnalyzer::ArrayDefinition() {
 void GrammaticalAnalyzer::Analyze() {
     try {
         Program();
-    } catch (std::exception& e) {
+    } catch (std::exception& e) { // syntax error
         std::cout << "Syntax error:\n"  << e.what();
         exit(0);
     }

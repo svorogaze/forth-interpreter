@@ -79,7 +79,8 @@ void GrammaticalAnalyzer::FunctionDefinition() {
 
 void GrammaticalAnalyzer::CodeBlock() {
     while (!IsFished() &&
-           code_block_enders_.find(GetCurrentLexeme().text) == code_block_enders_.end()) {
+           code_block_enders_.find(GetCurrentLexeme().text)
+           == code_block_enders_.end()) {
         if (GetCurrentLexeme().type == Lexeme::LexemeType::kKeyword) {
             ControlFlowConstruct();
         } else {

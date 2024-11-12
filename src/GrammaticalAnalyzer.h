@@ -26,10 +26,9 @@ private:
     void VariableDefinition();
     void ArrayDefinition();
     void SizeOperators();
-
-    std::vector<Lexeme> lexemes;
-    int current_lexeme_index = 0;
-    std::set<std::string> code_block_enders;
+    std::vector<Lexeme> lexemes_;
+    int current_lexeme_index_ = 0;
+    std::set<std::string> code_block_enders_;
 };
 
 

@@ -1,35 +1,47 @@
 #include "GrammaticalAnalyzer.h"
-
-#include <float.h>
 #include <stdexcept>
 #include <iostream>
 #include <utility>
-GrammaticalAnalyzer::GrammaticalAnalyzer(const std::vector<Lexeme>& _lexemes,
-                                         const std::vector<std::string>& code_block_enders_)
-        : lexemes(_lexemes) {
-    for (const auto& s : code_block_enders_) {
-        code_block_enders.insert(s);
+
+// public
+
+void GrammaticalAnalyzer::Analyze() {
+    try {
+        Program();
+    } catch (std::exception& e) { // syntax error
+        std::cout << "Syntax error:\n"  << e.what();
+        exit(0);
     }
 }
 
+GrammaticalAnalyzer::GrammaticalAnalyzer(const std::vector<Lexeme>& _lexemes,
+                     const std::vector<std::string>& _code_block_enders)
+        : lexemes_(_lexemes) {
+    for (const auto& s : _code_block_enders) {
+        code_block_enders_.insert(s);
+    }
+}
+
+// private
+
 Lexeme GrammaticalAnalyzer::GetCurrentLexeme() {
-    if (current_lexeme_index >= lexemes.size()) {
+    if (current_lexeme_index_ >= lexemes_.size()) {
         Lexeme lex;
         lex.text = "END OF FILE";
         lex.type = Lexeme::LexemeType::kError;
-        lex.row = lexemes.back().row;
-        lex.column = lexemes.back().column;
+        lex.row = lexemes_.back().row;
+        lex.column = lexemes_.back().column;
         return lex;
     }
-    return lexemes[current_lexeme_index];
+    return lexemes_[current_lexeme_index_];
 }
 
 void GrammaticalAnalyzer::NextLexeme() {
-    ++current_lexeme_index;
+    ++current_lexeme_index_;
 }
 
 bool GrammaticalAnalyzer::IsFished() {
-    return current_lexeme_index >= lexemes.size();
+    return current_lexeme_index_ >= lexemes_.size();
 }
 
 void GrammaticalAnalyzer::ThrowException(const std::string& expected) {
@@ -67,7 +79,7 @@ void GrammaticalAnalyzer::FunctionDefinition() {
 
 void GrammaticalAnalyzer::CodeBlock() {
     while (!IsFished() &&
-           code_block_enders.find(GetCurrentLexeme().text) == code_block_enders.end()) {
+           code_block_enders_.find(GetCurrentLexeme().text) == code_block_enders_.end()) {
         if (GetCurrentLexeme().type == Lexeme::LexemeType::kKeyword) {
             ControlFlowConstruct();
         } else {
@@ -198,7 +210,7 @@ void GrammaticalAnalyzer::VariableDefinition() {
 }
 
 void GrammaticalAnalyzer::SizeOperators() {
-    if (GetCurrentLexeme().text != "cells" &&
+    if (GetCurrentLexeme().text != "cells" && // int
         GetCurrentLexeme().text != "floats" &&
         GetCurrentLexeme().text != "chars") {
         ThrowException("size operator");
@@ -224,13 +236,4 @@ void GrammaticalAnalyzer::ArrayDefinition() {
         ThrowException("allot");
     }
     NextLexeme();
-}
-
-void GrammaticalAnalyzer::Analyze() {
-    try {
-        Program();
-    } catch (std::exception& e) { // syntax error
-        std::cout << "Syntax error:\n"  << e.what();
-        exit(0);
-    }
 }

@@ -91,6 +91,6 @@ bool Parser::Trie::Contains(std::string str) {
         }
         current_node = current_node->go[c].get();
     }
-    return true;
+    return current_node->is_terminal;
 }
 

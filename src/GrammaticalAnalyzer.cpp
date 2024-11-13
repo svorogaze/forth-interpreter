@@ -187,7 +187,7 @@ void GrammaticalAnalyzer::While() {
         ThrowException("BEGIN");
     }
     NextLexeme();
-    Statements();
+    CodeBlock();
     if (GetCurrentLexeme().text != "WHILE") {
         ThrowException("WHILE");
     }

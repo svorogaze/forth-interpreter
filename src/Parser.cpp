@@ -39,7 +39,8 @@ Parser::Parser(const std::string& input, const std::vector<std::string>& keyword
     int current_column = 0;
     for (int i = 0; i < input.size(); ++i) {
         char c = input[i];
-        if (IsDelimeter(c) && !cur_str.empty()) {
+        if (IsDelimeter(c) && !cur_str.empty() &&
+            !(cur_str.size() >= 3 && cur_str[0] == 's' && cur_str[1] == '"' && cur_str.back() != '"')) {
             Lexeme current;
             current.row = line;
             current.column = current_column;

@@ -84,7 +84,7 @@ int main(int argc, char** argv) {
         throw std::logic_error("number of command line arguments arguments doesn't match");
     }
     */
-    const std::string code_file(argv[1]);
+    const std::string code_file("C:\\Users\\vvzag\\CLionProjects\\forth_interpretator\\test4.txt");
     Preprocessor preprocessor(code_file);
     preprocessor.RemoveComments();
     std::string processed_string = preprocessor.GetCurrentText();
@@ -93,7 +93,7 @@ int main(int argc, char** argv) {
     Parser parser(processed_string, keywords, operators);
     auto lexemes = parser.GetResult();
 
-    GrammaticalAnalyzer grammatical_analyzer(lexemes, {";", "REPEAT", "LOOP", "ELSE", "ENDOF", ":", "ENDIF"});
+    GrammaticalAnalyzer grammatical_analyzer(lexemes, {";", "REPEAT", "LOOP", "ELSE", "ENDOF", ":", "ENDIF", "WHILE"});
     grammatical_analyzer.Analyze();
 
 }

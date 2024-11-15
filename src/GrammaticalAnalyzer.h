@@ -10,7 +10,8 @@ public:
 private:
     Lexeme GetCurrentLexeme();
     void NextLexeme();
-    void ThrowException(const std::string&);
+    void ThrowSyntaxException(const std::string&);
+    void ThrowUndefinedException(const Lexeme&);
     bool IsFished();
     // Grammar of language
     void Program();
@@ -29,6 +30,7 @@ private:
     std::vector<Lexeme> lexemes_;
     int current_lexeme_index_ = 0;
     std::set<std::string> code_block_enders_;
+    std::set<std::string> defined_identifiers;
 };
 
 

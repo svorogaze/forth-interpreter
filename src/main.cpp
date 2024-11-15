@@ -79,12 +79,10 @@ int main(int argc, char** argv) {
         "tofloat",
         "tocell"
     };
-    /*
     if (argc != 2) {
         throw std::logic_error("number of command line arguments arguments doesn't match");
     }
-    */
-    const std::string code_file("C:\\Users\\vvzag\\CLionProjects\\forth_interpretator\\test4.txt");
+    const std::string code_file(argv[1]);
     Preprocessor preprocessor(code_file);
     preprocessor.RemoveComments();
     std::string processed_string = preprocessor.GetCurrentText();

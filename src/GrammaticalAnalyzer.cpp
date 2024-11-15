@@ -8,6 +8,12 @@
 void GrammaticalAnalyzer::Analyze() {
     try {
         Program();
+        for (auto l : lexemes_) {
+            if (l.type == Lexeme::LexemeType::kLiteral &&
+                defined_identifiers.find(l.text) == defined_identifiers.end()) {
+                ThrowUndefinedException(l);
+            }
+        }
     } catch (std::exception& e) { // syntax error
         std::cout << "Syntax error:\n"  << e.what();
         exit(0);
@@ -44,12 +50,19 @@ bool GrammaticalAnalyzer::IsFished() {
     return current_lexeme_index_ >= lexemes_.size();
 }
 
-void GrammaticalAnalyzer::ThrowException(const std::string& expected) {
+void GrammaticalAnalyzer::ThrowSyntaxException(const std::string& expected) {
     auto l = GetCurrentLexeme();
     std::string exception_text = "Expected: " + expected + "\nGot: " + l.text
                                  + "\nat " + std::to_string(l.row) + " row " + std::to_string(l.column) + " column\n";
     throw std::runtime_error(exception_text);
 }
+
+void GrammaticalAnalyzer::ThrowUndefinedException(const Lexeme& l) {
+    std::string exception_text = "Undefined identifier " + l.text + " at "
+    + std::to_string(l.row) + " row " + std::to_string(l.column) + " column";
+    throw std::runtime_error(exception_text);
+}
+
 
 void GrammaticalAnalyzer::Program() {
     while (!IsFished()) {
@@ -63,16 +76,17 @@ void GrammaticalAnalyzer::Program() {
 
 void GrammaticalAnalyzer::FunctionDefinition() {
     if (GetCurrentLexeme().text != ":") {
-        ThrowException(":");
+        ThrowSyntaxException(":");
     }
     NextLexeme();
     if (GetCurrentLexeme().type != Lexeme::LexemeType::kIdentifier) {
-        ThrowException("identifier");
+        ThrowSyntaxException("identifier");
     }
+    defined_identifiers.insert(GetCurrentLexeme().text);
     NextLexeme();
     CodeBlock();
     if (GetCurrentLexeme().text != ";") {
-        ThrowException(";");
+        ThrowSyntaxException(";");
     }
     NextLexeme();
 }
@@ -124,13 +138,13 @@ void GrammaticalAnalyzer::ControlFlowConstruct() {
     } else if (GetCurrentLexeme().text == "CASE") {
         Switch();
     } else {
-        ThrowException("Control flow construct");
+        ThrowSyntaxException("Control flow construct");
     }
 }
 
 void GrammaticalAnalyzer::If() {
     if (GetCurrentLexeme().text != "IF") {
-        ThrowException("IF");
+        ThrowSyntaxException("IF");
     }
     NextLexeme();
     CodeBlock();
@@ -139,73 +153,95 @@ void GrammaticalAnalyzer::If() {
         CodeBlock();
     }
     if (GetCurrentLexeme().text != "ENDIF") {
-        ThrowException("ENDIF");
+        ThrowSyntaxException("ENDIF");
     }
     NextLexeme();
 }
 
 void GrammaticalAnalyzer::For() {
     if (GetCurrentLexeme().text != "DO") {
-        ThrowException("DO");
+        ThrowSyntaxException("DO");
     }
     NextLexeme();
     CodeBlock();
     if (GetCurrentLexeme().text != "LOOP") {
-        ThrowException("LOOP");
+        ThrowSyntaxException("LOOP");
     }
     NextLexeme();
 }
 
 void GrammaticalAnalyzer::Switch() {
     if (GetCurrentLexeme().text != "CASE") {
-        ThrowException("CASE");
+        ThrowSyntaxException("CASE");
     }
     NextLexeme();
     while (GetCurrentLexeme().text != "ENDCASE") {
         if (GetCurrentLexeme().type != Lexeme::LexemeType::kLiteral) {
-            ThrowException("literal");
+            ThrowSyntaxException("literal");
         }
         NextLexeme();
         if (GetCurrentLexeme().text != "OF") {
-            ThrowException("OF");
+            ThrowSyntaxException("OF");
         }
         NextLexeme();
         CodeBlock();
         if (GetCurrentLexeme().text != "ENDOF") {
-            ThrowException("ENDOF");
+            ThrowSyntaxException("ENDOF");
         }
         NextLexeme();
     }
     if (GetCurrentLexeme().text != "ENDCASE") {
-        ThrowException("ENDCASE");
+        ThrowSyntaxException("ENDCASE");
     }
     NextLexeme();
 }
 
 void GrammaticalAnalyzer::While() {
     if (GetCurrentLexeme().text != "BEGIN") {
-        ThrowException("BEGIN");
+        ThrowSyntaxException("BEGIN");
     }
     NextLexeme();
     CodeBlock();
     if (GetCurrentLexeme().text != "WHILE") {
-        ThrowException("WHILE");
+        ThrowSyntaxException("WHILE");
     }
     NextLexeme();
     CodeBlock();
     if (GetCurrentLexeme().text != "REPEAT") {
-        ThrowException("REPEAT");
+        ThrowSyntaxException("REPEAT");
     }
     NextLexeme();
 }
 
 void GrammaticalAnalyzer::VariableDefinition() {
     if (GetCurrentLexeme().text != "VARIABLE") {
-        ThrowException("VARIABLE");
+        ThrowSyntaxException("VARIABLE");
     }
     NextLexeme();
     if (GetCurrentLexeme().type != Lexeme::LexemeType::kIdentifier) {
-        ThrowException("identifier");
+        ThrowSyntaxException("identifier");
+    }
+    defined_identifiers.insert(GetCurrentLexeme().text);
+    NextLexeme();
+}
+
+void GrammaticalAnalyzer::ArrayDefinition() {
+    if (GetCurrentLexeme().text != "CREATE") {
+        ThrowSyntaxException("CREATE");
+    }
+    NextLexeme();
+    if (GetCurrentLexeme().type != Lexeme::LexemeType::kIdentifier) {
+        ThrowSyntaxException("identifier");
+    }
+    defined_identifiers.insert(GetCurrentLexeme().text);
+    NextLexeme();
+    if (GetCurrentLexeme().type != Lexeme::LexemeType::kLiteral) {
+        ThrowSyntaxException("literal");
+    }
+    NextLexeme();
+    SizeOperators();
+    if (GetCurrentLexeme().text != "allot") {
+        ThrowSyntaxException("allot");
     }
     NextLexeme();
 }
@@ -214,27 +250,7 @@ void GrammaticalAnalyzer::SizeOperators() {
     if (GetCurrentLexeme().text != "cells" && // int
         GetCurrentLexeme().text != "floats" &&
         GetCurrentLexeme().text != "chars") {
-        ThrowException("size operator");
-    }
-    NextLexeme();
-}
-
-void GrammaticalAnalyzer::ArrayDefinition() {
-    if (GetCurrentLexeme().text != "CREATE") {
-        ThrowException("CREATE");
-    }
-    NextLexeme();
-    if (GetCurrentLexeme().type != Lexeme::LexemeType::kIdentifier) {
-        ThrowException("identifier");
-    }
-    NextLexeme();
-    if (GetCurrentLexeme().type != Lexeme::LexemeType::kLiteral) {
-        ThrowException("literal");
-    }
-    NextLexeme();
-    SizeOperators();
-    if (GetCurrentLexeme().text != "allot") {
-        ThrowException("allot");
-    }
+        ThrowSyntaxException("size operator");
+        }
     NextLexeme();
 }

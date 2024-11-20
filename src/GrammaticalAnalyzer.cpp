@@ -2,6 +2,7 @@
 #include <stdexcept>
 #include <iostream>
 #include <utility>
+#include <regex>
 
 // public
 
@@ -9,7 +10,7 @@ void GrammaticalAnalyzer::Analyze() {
     try {
         Program();
         for (auto l : lexemes_) {
-            if (l.type == Lexeme::LexemeType::kLiteral &&
+            if (l.type == Lexeme::LexemeType::kIdentifier &&
                 defined_identifiers.find(l.text) == defined_identifiers.end()) {
                 ThrowUndefinedException(l);
             }
@@ -50,19 +51,39 @@ bool GrammaticalAnalyzer::IsFished() {
     return current_lexeme_index_ >= lexemes_.size();
 }
 
+bool GrammaticalAnalyzer::IsInteger(const std::string &text) {
+    return std::regex_match(text, std::regex("-?[0-9]+"));
+}
+
 void GrammaticalAnalyzer::ThrowSyntaxException(const std::string& expected) {
     auto l = GetCurrentLexeme();
-    std::string exception_text = "Expected: " + expected + "\nGot: " + l.text
-                                 + "\nat " + std::to_string(l.row) + " row " + std::to_string(l.column) + " column\n";
+    std::string exception_text = std::to_string(l.row) + ":"
+            + std::to_string(l.column) + ": " +
+            "Expected: " + "'" + expected + "'"
+            + "\nGot: " + "'" + l.text + "'" + "\n";
     throw std::runtime_error(exception_text);
 }
 
 void GrammaticalAnalyzer::ThrowUndefinedException(const Lexeme& l) {
-    std::string exception_text = "Undefined identifier " + l.text + " at "
-    + std::to_string(l.row) + " row " + std::to_string(l.column) + " column";
+    std::string exception_text = std::to_string(l.row) + ":" +
+            std::to_string(l.column) + ": "
+            + "Undefined identifier " + "'" + l.text + "'" + "\n";
     throw std::runtime_error(exception_text);
 }
 
+void GrammaticalAnalyzer::ThrowNotNumberException(const Lexeme& l) {
+    std::string exception_text = std::to_string(l.row) + ":"
+            + std::to_string(l.column) + ": "
+            + "Literal " + "'" + l.text + "'" +  " must be an integer\n";
+    throw std::runtime_error(exception_text);
+}
+
+void GrammaticalAnalyzer::ThrowFindCycle(const Lexeme& l) {
+    std::string exception_text = std::to_string(l.row) + ":"
+            + std::to_string(l.column) + ": "
+            + "Operator " + "'" + l.text + "'" + " must be in cycle\n";
+    throw std::runtime_error(exception_text);
+}
 
 void GrammaticalAnalyzer::Program() {
     while (!IsFished()) {
@@ -112,11 +133,17 @@ bool GrammaticalAnalyzer::Statement() {
         VariableDefinition();
         return true;
     }
-    if (GetCurrentLexeme().text == "CREATE") { // creat array
+    if (GetCurrentLexeme().text == "CREATE") { // create array
         ArrayDefinition();
         return true;
     }
     if (GetCurrentLexeme().type == Lexeme::LexemeType::kOperator) {
+        if (GetCurrentLexeme().text == "leave" ||
+        GetCurrentLexeme().text == "continue") {
+            if (!in_cycle) {
+                ThrowFindCycle(GetCurrentLexeme());
+            }
+        }
         NextLexeme();
         return true;
     }
@@ -130,9 +157,13 @@ bool GrammaticalAnalyzer::Statement() {
 
 void GrammaticalAnalyzer::ControlFlowConstruct() {
     if (GetCurrentLexeme().text == "BEGIN") {
+        in_cycle = true;
         While();
+        in_cycle = false;
     } else if (GetCurrentLexeme().text == "DO") {
+        in_cycle = true;
         For();
+        in_cycle = false;
     } else if (GetCurrentLexeme().text == "IF") {
         If();
     } else if (GetCurrentLexeme().text == "CASE") {
@@ -170,7 +201,25 @@ void GrammaticalAnalyzer::For() {
     NextLexeme();
 }
 
+void GrammaticalAnalyzer::While() {
+    if (GetCurrentLexeme().text != "BEGIN") {
+        ThrowSyntaxException("BEGIN");
+    }
+    NextLexeme();
+    CodeBlock();
+    if (GetCurrentLexeme().text != "WHILE") {
+        ThrowSyntaxException("WHILE");
+    }
+    NextLexeme();
+    CodeBlock();
+    if (GetCurrentLexeme().text != "REPEAT") {
+        ThrowSyntaxException("REPEAT");
+    }
+    NextLexeme();
+}
+
 void GrammaticalAnalyzer::Switch() {
+    // if num
     if (GetCurrentLexeme().text != "CASE") {
         ThrowSyntaxException("CASE");
     }
@@ -178,6 +227,9 @@ void GrammaticalAnalyzer::Switch() {
     while (GetCurrentLexeme().text != "ENDCASE") {
         if (GetCurrentLexeme().type != Lexeme::LexemeType::kLiteral) {
             ThrowSyntaxException("literal");
+        }
+        if (!IsInteger(GetCurrentLexeme().text)) {
+            ThrowNotNumberException(GetCurrentLexeme());
         }
         NextLexeme();
         if (GetCurrentLexeme().text != "OF") {
@@ -192,23 +244,6 @@ void GrammaticalAnalyzer::Switch() {
     }
     if (GetCurrentLexeme().text != "ENDCASE") {
         ThrowSyntaxException("ENDCASE");
-    }
-    NextLexeme();
-}
-
-void GrammaticalAnalyzer::While() {
-    if (GetCurrentLexeme().text != "BEGIN") {
-        ThrowSyntaxException("BEGIN");
-    }
-    NextLexeme();
-    CodeBlock();
-    if (GetCurrentLexeme().text != "WHILE") {
-        ThrowSyntaxException("WHILE");
-    }
-    NextLexeme();
-    CodeBlock();
-    if (GetCurrentLexeme().text != "REPEAT") {
-        ThrowSyntaxException("REPEAT");
     }
     NextLexeme();
 }

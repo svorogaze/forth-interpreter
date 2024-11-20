@@ -10,9 +10,13 @@ public:
 private:
     Lexeme GetCurrentLexeme();
     void NextLexeme();
+    // exceptions
     void ThrowSyntaxException(const std::string&);
     void ThrowUndefinedException(const Lexeme&);
+    void ThrowNotNumberException(const Lexeme&);
+    void ThrowFindCycle(const Lexeme&);
     bool IsFished();
+    bool IsInteger(const std::string& text);
     // Grammar of language
     void Program();
     void FunctionDefinition();
@@ -31,6 +35,7 @@ private:
     int current_lexeme_index_ = 0;
     std::set<std::string> code_block_enders_;
     std::set<std::string> defined_identifiers;
+    bool in_cycle = false;
 };
 
 

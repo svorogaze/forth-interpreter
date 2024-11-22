@@ -85,10 +85,26 @@ void GrammaticalAnalyzer::ThrowFindCycle(const Lexeme& l) {
     throw std::runtime_error(exception_text);
 }
 
+void GrammaticalAnalyzer::ThrowFindFunction(const Lexeme& l) {
+    std::string exception_text = std::to_string(l.row) + ":"
+                                 + std::to_string(l.column) + ": "
+                                 + "Operator " + "'" + l.text + "'" + " must be in function\n";
+    throw std::runtime_error(exception_text);
+}
+
+void GrammaticalAnalyzer::ThrowRedefinition(const Lexeme& l) {
+    std::string exception_text = std::to_string(l.row) + ":"
+                                 + std::to_string(l.column) + ": "
+                                 + "Redefinition of identifier " + "'" + l.text + "'" + "\n";
+    throw std::runtime_error(exception_text);
+}
+
 void GrammaticalAnalyzer::Program() {
     while (!IsFished()) {
         if (GetCurrentLexeme().text == ":") { // forth function
+            in_function++;
             FunctionDefinition();
+            in_function--;
         } else {
             CodeBlock();
         }
@@ -142,6 +158,11 @@ bool GrammaticalAnalyzer::Statement() {
         GetCurrentLexeme().text == "continue") {
             if (!in_cycle) {
                 ThrowFindCycle(GetCurrentLexeme());
+            }
+        }
+        if (GetCurrentLexeme().text == "exit") {
+            if (!in_function) {
+                ThrowFindFunction(GetCurrentLexeme());
             }
         }
         NextLexeme();
@@ -256,6 +277,9 @@ void GrammaticalAnalyzer::VariableDefinition() {
     if (GetCurrentLexeme().type != Lexeme::LexemeType::kIdentifier) {
         ThrowSyntaxException("identifier");
     }
+    if (defined_identifiers.find(GetCurrentLexeme().text) != defined_identifiers.end()) {
+        ThrowRedefinition(GetCurrentLexeme());
+    }
     defined_identifiers.insert(GetCurrentLexeme().text);
     NextLexeme();
 }
@@ -268,10 +292,16 @@ void GrammaticalAnalyzer::ArrayDefinition() {
     if (GetCurrentLexeme().type != Lexeme::LexemeType::kIdentifier) {
         ThrowSyntaxException("identifier");
     }
+    if (defined_identifiers.find(GetCurrentLexeme().text) != defined_identifiers.end()) {
+        ThrowRedefinition(GetCurrentLexeme());
+    }
     defined_identifiers.insert(GetCurrentLexeme().text);
     NextLexeme();
     if (GetCurrentLexeme().type != Lexeme::LexemeType::kLiteral) {
         ThrowSyntaxException("literal");
+    }
+    if (!IsInteger(GetCurrentLexeme().text)) {
+        ThrowNotNumberException(GetCurrentLexeme());
     }
     NextLexeme();
     SizeOperators();
@@ -286,6 +316,6 @@ void GrammaticalAnalyzer::SizeOperators() {
         GetCurrentLexeme().text != "floats" &&
         GetCurrentLexeme().text != "chars") {
         ThrowSyntaxException("size operator");
-        }
+    }
     NextLexeme();
 }

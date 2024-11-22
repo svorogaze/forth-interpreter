@@ -15,6 +15,8 @@ private:
     void ThrowUndefinedException(const Lexeme&);
     void ThrowNotNumberException(const Lexeme&);
     void ThrowFindCycle(const Lexeme&);
+    void ThrowFindFunction(const Lexeme&);
+    void ThrowRedefinition(const Lexeme&);
     bool IsFished();
     bool IsInteger(const std::string& text);
     // Grammar of language
@@ -36,6 +38,7 @@ private:
     std::set<std::string> code_block_enders_;
     std::set<std::string> defined_identifiers;
     bool in_cycle = false;
+    int in_function = 0;
 };
 
 

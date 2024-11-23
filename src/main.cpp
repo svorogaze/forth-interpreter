@@ -78,8 +78,7 @@ int main(int argc, char** argv) {
         "cells",
         "tofloat",
         "tocell",
-        "recurse",
-        "exit"
+        "return"
     };
     if (argc != 2) {
         throw std::logic_error("number of command line arguments arguments doesn't match");

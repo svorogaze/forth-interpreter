@@ -64,47 +64,39 @@ void GrammaticalAnalyzer::ThrowSyntaxException(const std::string& expected) {
     throw std::runtime_error(exception_text);
 }
 
-void GrammaticalAnalyzer::ThrowUndefinedException(const Lexeme& l) {
+void ThrowGenericException(const Lexeme& l, std::string prefix_text = "", std::string suffix_text = "") {
     std::string exception_text = std::to_string(l.row) + ":" +
             std::to_string(l.column) + ": "
-            + "Undefined identifier " + "'" + l.text + "'" + "\n";
+            + prefix_text + "'" + l.text + "'" + suffix_text + "\n";
     throw std::runtime_error(exception_text);
 }
 
-void GrammaticalAnalyzer::ThrowNotNumberException(const Lexeme& l) {
-    std::string exception_text = std::to_string(l.row) + ":"
-            + std::to_string(l.column) + ": "
-            + "Literal " + "'" + l.text + "'" +  " must be an integer\n";
-    throw std::runtime_error(exception_text);
+void GrammaticalAnalyzer::ThrowUndefinedException(const Lexeme& l) {
+    ThrowGenericException(l, "Undefined identifier ", "");
 }
 
-void GrammaticalAnalyzer::ThrowFindCycle(const Lexeme& l) {
-    std::string exception_text = std::to_string(l.row) + ":"
-            + std::to_string(l.column) + ": "
-            + "Operator " + "'" + l.text + "'" + " must be in cycle\n";
-    throw std::runtime_error(exception_text);
+void GrammaticalAnalyzer::ThrowNotIntegerException(const Lexeme& l) {
+    ThrowGenericException(l, "Literal ", " must be an integer");
 }
 
-void GrammaticalAnalyzer::ThrowFindFunction(const Lexeme& l) {
-    std::string exception_text = std::to_string(l.row) + ":"
-                                 + std::to_string(l.column) + ": "
-                                 + "Operator " + "'" + l.text + "'" + " must be in function\n";
-    throw std::runtime_error(exception_text);
+void GrammaticalAnalyzer::ThrowNotInLoopException(const Lexeme& l) {
+    ThrowGenericException(l, "Operator ", " must be in loop");
 }
 
-void GrammaticalAnalyzer::ThrowRedefinition(const Lexeme& l) {
-    std::string exception_text = std::to_string(l.row) + ":"
-                                 + std::to_string(l.column) + ": "
-                                 + "Redefinition of identifier " + "'" + l.text + "'" + "\n";
-    throw std::runtime_error(exception_text);
+void GrammaticalAnalyzer::ThrowNotInFunctionException(const Lexeme& l) {
+    ThrowGenericException(l, "Operator ", " must be in function");
+}
+
+void GrammaticalAnalyzer::ThrowRedefinitionException(const Lexeme& l) {
+    ThrowGenericException(l, "Redefinition of identifier ", "");
 }
 
 void GrammaticalAnalyzer::Program() {
     while (!IsFished()) {
         if (GetCurrentLexeme().text == ":") { // forth function
-            in_function++;
+            function_counter++;
             FunctionDefinition();
-            in_function--;
+            function_counter--;
         } else {
             CodeBlock();
         }
@@ -118,6 +110,9 @@ void GrammaticalAnalyzer::FunctionDefinition() {
     NextLexeme();
     if (GetCurrentLexeme().type != Lexeme::LexemeType::kIdentifier) {
         ThrowSyntaxException("identifier");
+    }
+    if (defined_identifiers.find(GetCurrentLexeme().text) != defined_identifiers.end()) {
+        ThrowRedefinitionException(GetCurrentLexeme());
     }
     defined_identifiers.insert(GetCurrentLexeme().text);
     NextLexeme();
@@ -156,13 +151,13 @@ bool GrammaticalAnalyzer::Statement() {
     if (GetCurrentLexeme().type == Lexeme::LexemeType::kOperator) {
         if (GetCurrentLexeme().text == "leave" ||
         GetCurrentLexeme().text == "continue") {
-            if (!in_cycle) {
-                ThrowFindCycle(GetCurrentLexeme());
+            if (loop_counter == 0) {
+                ThrowNotInLoopException(GetCurrentLexeme());
             }
         }
-        if (GetCurrentLexeme().text == "exit") {
-            if (!in_function) {
-                ThrowFindFunction(GetCurrentLexeme());
+        if (GetCurrentLexeme().text == "return") {
+            if (function_counter == 0) {
+                ThrowNotInFunctionException(GetCurrentLexeme());
             }
         }
         NextLexeme();
@@ -178,13 +173,13 @@ bool GrammaticalAnalyzer::Statement() {
 
 void GrammaticalAnalyzer::ControlFlowConstruct() {
     if (GetCurrentLexeme().text == "BEGIN") {
-        in_cycle = true;
+        loop_counter++;
         While();
-        in_cycle = false;
+        loop_counter--;
     } else if (GetCurrentLexeme().text == "DO") {
-        in_cycle = true;
+        loop_counter++;
         For();
-        in_cycle = false;
+        loop_counter--;
     } else if (GetCurrentLexeme().text == "IF") {
         If();
     } else if (GetCurrentLexeme().text == "CASE") {
@@ -250,7 +245,7 @@ void GrammaticalAnalyzer::Switch() {
             ThrowSyntaxException("literal");
         }
         if (!IsInteger(GetCurrentLexeme().text)) {
-            ThrowNotNumberException(GetCurrentLexeme());
+            ThrowNotIntegerException(GetCurrentLexeme());
         }
         NextLexeme();
         if (GetCurrentLexeme().text != "OF") {
@@ -278,7 +273,7 @@ void GrammaticalAnalyzer::VariableDefinition() {
         ThrowSyntaxException("identifier");
     }
     if (defined_identifiers.find(GetCurrentLexeme().text) != defined_identifiers.end()) {
-        ThrowRedefinition(GetCurrentLexeme());
+        ThrowRedefinitionException(GetCurrentLexeme());
     }
     defined_identifiers.insert(GetCurrentLexeme().text);
     NextLexeme();
@@ -293,7 +288,7 @@ void GrammaticalAnalyzer::ArrayDefinition() {
         ThrowSyntaxException("identifier");
     }
     if (defined_identifiers.find(GetCurrentLexeme().text) != defined_identifiers.end()) {
-        ThrowRedefinition(GetCurrentLexeme());
+        ThrowRedefinitionException(GetCurrentLexeme());
     }
     defined_identifiers.insert(GetCurrentLexeme().text);
     NextLexeme();
@@ -301,7 +296,7 @@ void GrammaticalAnalyzer::ArrayDefinition() {
         ThrowSyntaxException("literal");
     }
     if (!IsInteger(GetCurrentLexeme().text)) {
-        ThrowNotNumberException(GetCurrentLexeme());
+        ThrowNotIntegerException(GetCurrentLexeme());
     }
     NextLexeme();
     SizeOperators();

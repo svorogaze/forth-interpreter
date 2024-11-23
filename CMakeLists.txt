@@ -12,4 +12,10 @@ add_executable(forth_interpretator src/main.cpp
         src/Parser.h
         src/GrammaticalAnalyzer.cpp
         src/GrammaticalAnalyzer.h
+        src/StackElement.cpp
+        src/StackElement.h
+        src/Environment.cpp
+        src/Environment.h
+        src/Executable.cpp
+        src/Executable.h
 )

@@ -16,6 +16,11 @@ add_executable(forth_interpretator src/main.cpp
         src/StackElement.h
         src/Environment.cpp
         src/Environment.h
-        src/Executable.cpp
         src/Executable.h
+        src/While.cpp
+        src/Codeblock.cpp
+        src/If.cpp
+        src/Switch.cpp
+        src/VariableCreation.cpp
+        src/For.cpp
 )

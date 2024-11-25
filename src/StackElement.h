@@ -7,6 +7,8 @@ class StackElement {
 public:
     std::variant<int64_t, double> value;
     StackElement(std::variant<int64_t, double>);
+    template<typename T>
+    T Convert();
 };
 
 

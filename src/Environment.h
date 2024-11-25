@@ -3,14 +3,19 @@
 #include <vector>
 #include <map>
 #include <string>
+#include <memory>
 #include "StackElement.h"
-#include "Executable.h"
+class Executable;
 class Environment {
 public:
-    std::vector<StackElement> stack;
     std::map<std::string, std::shared_ptr<Executable>> functions;
     std::map<std::string, void*> variables;
     std::vector<std::shared_ptr<Executable>> code;
+    void PopStack();
+    StackElement GetStackBack();
+    void PushOnStack(StackElement s);
+private:
+    std::vector<StackElement> stack;
 };
 
 

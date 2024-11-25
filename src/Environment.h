@@ -11,8 +11,7 @@ public:
     std::map<std::string, std::shared_ptr<Executable>> functions;
     std::map<std::string, void*> variables;
     std::vector<std::shared_ptr<Executable>> code;
-    void PopStack();
-    StackElement GetStackBack();
+    StackElement PopStack();
     void PushOnStack(StackElement s);
 private:
     std::vector<StackElement> stack;

@@ -1,8 +1,7 @@
 #include "Executable.h"
 
 Executable::ReturnStatus If::Execute(Environment& environment) {
-    auto bool_flag = environment.GetStackBack();
-    environment.PopStack();
+    auto bool_flag = environment.PopStack();
     if (bool_flag.Convert<bool>()) {
         return if_part->Execute(environment);
     }

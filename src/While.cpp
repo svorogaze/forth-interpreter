@@ -9,8 +9,7 @@ Executable::ReturnStatus While::Execute(Environment& environment) {
             }
             return status;
         }
-        auto elem = environment.GetStackBack();
-        environment.PopStack();
+        auto elem = environment.PopStack();
         if (!elem.Convert<bool>()) {
             break;
         }

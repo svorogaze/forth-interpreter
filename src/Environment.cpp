@@ -1,18 +1,13 @@
 #include "Environment.h"
 #include "stdexcept"
 
-void Environment::PopStack() {
+StackElement Environment::PopStack() {
     if (stack.empty()) {
-        throw std::runtime_error("Stack is empty when popping it");
+        throw std::runtime_error("Zero elements on stack when popping it");
     }
+    auto res = stack.back();
     stack.pop_back();
-}
-
-StackElement Environment::GetStackBack() {
-    if (stack.empty()) {
-        throw std::runtime_error("Zero elements on stack when trying to get it's back");
-    }
-    return stack.back();
+    return res;
 }
 
 void Environment::PushOnStack(StackElement s) {

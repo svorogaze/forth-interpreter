@@ -1,10 +1,10 @@
 #ifndef EXECUTABLE_H
 #define EXECUTABLE_H
 #include <memory>
-
-#include "Environment.h"
 #include <vector>
-
+#include <map>
+#include <functional>
+#include "Environment.h"
 
 
 class Executable {
@@ -14,15 +14,8 @@ public:
         kLeaveLoop,
         kLeaveFunction,
     };
-    virtual ReturnStatus Execute(Environment& environment);
+    virtual ReturnStatus Execute(Environment& environment) = 0;
     virtual ~Executable() = default;
-};
-
-class Operator final : public Executable {
-public:
-    ReturnStatus Execute(Environment& environment) override;
-    explicit Operator(std::string text);
-    std::string text;
 };
 
 class VariableCreation final : public Executable {
@@ -63,6 +56,18 @@ class Switch final : public Executable {
 public:
     ReturnStatus Execute(Environment& environment) override;
     std::map<int64_t, std::shared_ptr<Executable>> cases;
+};
+
+class Operator final : public Executable {
+public:
+    ReturnStatus Execute(Environment& environment) override;
+    explicit Operator(std::string text);
+    std::string text;
+    static std::map<std::string, std::function<ReturnStatus (Environment&)>> operators_pointers;
+private:
+    ReturnStatus FunctionCall(Environment& environment);
+    ReturnStatus VariableUse(Environment& environment);
+    ReturnStatus Literal(Environment& environment);
 };
 
 #endif //EXECUTABLE_H

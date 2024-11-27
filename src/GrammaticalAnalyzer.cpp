@@ -1,6 +1,7 @@
 #include "GrammaticalAnalyzer.h"
 #include "Executable.h"
 #include "Environment.h"
+#include "Literals.h"
 #include <stdexcept>
 #include <iostream>
 #include <utility>
@@ -53,10 +54,6 @@ bool GrammaticalAnalyzer::IsFished() {
     return current_lexeme_index_ >= lexemes_.size();
 }
 
-bool GrammaticalAnalyzer::IsInteger(const std::string &text) {
-    return std::regex_match(text, std::regex("-?[0-9]+"));
-}
-
 void GrammaticalAnalyzer::ThrowSyntaxException(const std::string &expected) {
     auto l = GetCurrentLexeme();
     std::string exception_text = std::to_string(l.row) + ":"
@@ -94,6 +91,7 @@ void GrammaticalAnalyzer::ThrowRedefinitionException(const Lexeme &l) {
 }
 
 void GrammaticalAnalyzer::Program() {
+    std::shared_ptr<Codeblock> result(new Codeblock);
     while (!IsFished()) {
         if (GetCurrentLexeme().text == ":") {
             function_counter++;
@@ -101,9 +99,10 @@ void GrammaticalAnalyzer::Program() {
             function_counter--;
         } else {
             auto block = CodeBlock();
-            resulting_environment.code.push_back(block);
+            result->statements.push_back(block);
         }
     }
+    resulting_environment.code = result;
 }
 
 std::shared_ptr<Executable> GrammaticalAnalyzer::FunctionDefinition() {

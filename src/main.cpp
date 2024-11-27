@@ -3,12 +3,13 @@
 #include <string>
 #include <fstream>
 
+#include "Executable.h"
 #include "GrammaticalAnalyzer.h"
 #include "Preprocessor.h"
 #include "Parser.h"
 #include "Lexeme.h"
 #include "StackElement.h"
-int main(int argc, char** argv) {
+int main() {
     std::vector<std::string> keywords = {
         "BEGIN",
         "WHILE",
@@ -80,10 +81,12 @@ int main(int argc, char** argv) {
         "tocell",
         "return"
     };
+    /*
     if (argc != 2) {
         throw std::logic_error("number of command line arguments arguments doesn't match");
     }
-    const std::string code_file(argv[1]);
+    */
+    const std::string code_file("C:\\Users\\vvzag\\CLionProjects\\forth_interpretator\\test.txt");
     Preprocessor preprocessor(code_file);
     preprocessor.RemoveComments();
     std::string processed_string = preprocessor.GetCurrentText();
@@ -94,5 +97,5 @@ int main(int argc, char** argv) {
 
     GrammaticalAnalyzer grammatical_analyzer(lexemes, {";", "REPEAT", "LOOP", "ELSE", "ENDOF", ":", "ENDIF", "WHILE"});
     grammatical_analyzer.Analyze();
-
+    grammatical_analyzer.resulting_environment.code->Execute(grammatical_analyzer.resulting_environment);
 }

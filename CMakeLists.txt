@@ -23,4 +23,7 @@ add_executable(forth_interpretator src/main.cpp
         src/Switch.cpp
         src/VariableCreation.cpp
         src/For.cpp
+        src/Operator.cpp
+        src/Literals.h
+        src/Literals.cpp
 )

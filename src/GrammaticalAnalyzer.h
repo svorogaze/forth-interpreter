@@ -23,7 +23,6 @@ private:
     void ThrowNotInFunctionException(const Lexeme& l);
     void ThrowRedefinitionException(const Lexeme& l);
     bool IsFished();
-    bool IsInteger(const std::string& text);
     // Grammar of language
     void Program();
     std::shared_ptr<Executable> FunctionDefinition();

@@ -190,12 +190,14 @@ std::shared_ptr<Executable> GrammaticalAnalyzer::Statement() {
 std::shared_ptr<Executable> GrammaticalAnalyzer::ControlFlowConstruct() {
     if (GetCurrentLexeme().text == "BEGIN") {
         loop_counter++;
-        return While();
+        auto result = While();
         loop_counter--;
+        return result;
     } else if (GetCurrentLexeme().text == "DO") {
         loop_counter++;
-        return For();
+        auto result = For();
         loop_counter--;
+        return result;
     } else if (GetCurrentLexeme().text == "IF") {
         return If();
     } else if (GetCurrentLexeme().text == "CASE") {

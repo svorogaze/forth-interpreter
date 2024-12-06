@@ -75,6 +75,23 @@ Executable::ReturnStatus ModulusOperator(Environment& environment) {
     return Executable::ReturnStatus::kSuccess;
 }
 Executable::ReturnStatus ConcatenationOperator(Environment& environment) {
+    auto sz1 = environment.PopStack().Convert<int64_t>();
+    auto address1 = environment.PopStack().Convert<uint64_t>();
+    auto sz2 = environment.PopStack().Convert<int64_t >();
+    auto address2 = environment.PopStack().Convert<uint64_t>();
+    auto res_sz = sz1 + sz2;
+    char* res = new char[res_sz];
+    for (size_t i = 0; i < res_sz; ++i) {
+        if (i < sz1) {
+            res[i] = *(char*)(address1 + i);
+        } else {
+            res[i] = *(char*)(address2 + i - sz1);
+        }
+    }
+    StackElement RES((int64_t)(res));
+    StackElement RES_SZ(res_sz);
+    environment.PushOnStack(RES);
+    environment.PushOnStack(RES_SZ);
     return Executable::ReturnStatus::kSuccess;
 }
 Executable::ReturnStatus NegationOperator(Environment& environment) {
@@ -88,9 +105,17 @@ Executable::ReturnStatus InversionOperator(Environment& environment) {
     return Executable::ReturnStatus::kSuccess;
 }
 Executable::ReturnStatus LshiftOperator(Environment& environment) {
+    StackElement a = environment.PopStack();
+    StackElement k = environment.PopStack();
+    a.value = (a.Convert<int64_t>() << k.Convert<int64_t>());
+    environment.PushOnStack(a);
     return Executable::ReturnStatus::kSuccess;
 }
 Executable::ReturnStatus RshiftOperator(Environment& environment) {
+    StackElement a = environment.PopStack();
+    StackElement k = environment.PopStack();
+    a.value = (a.Convert<int64_t>() >> k.Convert<int64_t>());
+    environment.PushOnStack(a);
     return Executable::ReturnStatus::kSuccess;
 }
 Executable::ReturnStatus AndOperator(Environment& environment) {
@@ -117,27 +142,60 @@ Executable::ReturnStatus NotOperator(Environment& environment) {
     return Executable::ReturnStatus::kSuccess;
 }
 Executable::ReturnStatus DupOperator(Environment& environment) {
+    StackElement a = environment.PopStack();
+    environment.PushOnStack(a);
+    environment.PushOnStack(a);
     return Executable::ReturnStatus::kSuccess;
 }
 Executable::ReturnStatus DropOperator(Environment& environment) {
+    environment.PopStack();
     return Executable::ReturnStatus::kSuccess;
 }
 Executable::ReturnStatus SwapOperator(Environment& environment) {
+    StackElement a = environment.PopStack();
+    StackElement b = environment.PopStack();
+    environment.PushOnStack(a);
+    environment.PushOnStack(b);
     return Executable::ReturnStatus::kSuccess;
 }
 Executable::ReturnStatus OverOperator(Environment& environment) {
+    StackElement a = environment.PopStack();
+    StackElement b = environment.PopStack();
+    environment.PushOnStack(b);
+    environment.PushOnStack(a);
+    environment.PushOnStack(b);
     return Executable::ReturnStatus::kSuccess;
 }
 Executable::ReturnStatus RotOperator(Environment& environment) {
+    StackElement w3 = environment.PopStack();
+    StackElement w2 = environment.PopStack();
+    StackElement w1 = environment.PopStack();
+    environment.PushOnStack(w2);
+    environment.PushOnStack(w3);
+    environment.PushOnStack(w1);
     return Executable::ReturnStatus::kSuccess;
 }
 Executable::ReturnStatus PickOperator(Environment& environment) {
-    return Executable::ReturnStatus::kSuccess;
+    auto a = environment.PopStack().Convert<int64_t>();
+    if (a >= 0 && (int64_t)environment.stack.size() - a > 0ll) {
+        environment.PushOnStack(
+                environment.stack[(int64_t)environment.stack.size() - a - 1]);
+        return Executable::ReturnStatus::kSuccess;
+    }
+    throw std::runtime_error("Incorrect argument");
 }
 Executable::ReturnStatus NipOperator(Environment& environment) {
+    StackElement w2 = environment.PopStack();
+    StackElement w1 = environment.PopStack();
+    environment.PushOnStack(w2);
     return Executable::ReturnStatus::kSuccess;
 }
 Executable::ReturnStatus TuckOperator(Environment& environment) {
+    StackElement w2 = environment.PopStack();
+    StackElement w1 = environment.PopStack();
+    environment.PushOnStack(w2);
+    environment.PushOnStack(w1);
+    environment.PushOnStack(w2);
     return Executable::ReturnStatus::kSuccess;
 }
 Executable::ReturnStatus EqualsOperator(Environment& environment) {
@@ -204,7 +262,8 @@ Executable::ReturnStatus StringOutputOperator(Environment& environment) {
     return Executable::ReturnStatus::kSuccess;
 }
 Executable::ReturnStatus CharOutputOperator(Environment& environment) {
-
+    char e = environment.PopStack().Convert<char>();
+    std::cout << e; // ???
     return Executable::ReturnStatus::kSuccess;
 }
 Executable::ReturnStatus StackBackOutputOperator(Environment& environment) {

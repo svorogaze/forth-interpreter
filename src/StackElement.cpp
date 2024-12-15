@@ -1,9 +1,5 @@
 #include "StackElement.h"
 
-StackElement::StackElement(const std::variant<int64_t, double>& other) {
-    value = other;
-}
-
 StackElement StackElement::operator+(const StackElement& other) {
     return std::visit([](auto a, auto b) {
        return StackElement(a + b);

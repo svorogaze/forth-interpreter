@@ -46,7 +46,7 @@ Parser::Parser(const std::string& input, const std::vector<std::string>& keyword
             }
             result.push_back(current);
             cur_str.clear();
-        } else if (!IsDelimeter(c)) {
+        } else if (!IsDelimeter(c) || (cur_str.size() >= 2 && cur_str[0] == 's' && cur_str[1] == '"')) {
             cur_str += c;
         }
         if (c == '\n') {

@@ -94,7 +94,6 @@ int main() {
 
     Parser parser(processed_string, keywords, operators);
     auto lexemes = parser.GetResult();
-
     GrammaticalAnalyzer grammatical_analyzer(lexemes, {";", "REPEAT", "LOOP", "ELSE", "ENDOF", ":", "ENDIF", "WHILE"});
     grammatical_analyzer.Analyze();
     grammatical_analyzer.resulting_environment.code->Execute(grammatical_analyzer.resulting_environment);

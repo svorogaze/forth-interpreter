@@ -6,11 +6,14 @@
 class StackElement {
 public:
     std::variant<int64_t, double> value;
-    StackElement(const std::variant<int64_t, double>&);
+    template<typename T>
+    StackElement(T other) {
+        value = std::variant<int64_t, double>(other);
+    }
     template<typename T>
     T Convert() {
         return std::visit([](auto a) {
-            return static_cast<T>(a);
+            return *((T*)&a);
         },value);
     }
     StackElement operator+(const StackElement& other);

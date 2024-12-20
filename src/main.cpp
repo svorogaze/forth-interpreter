@@ -2,7 +2,7 @@
 #include <stdexcept>
 #include <string>
 #include <fstream>
-
+#include <csignal>
 #include "Executable.h"
 #include "GrammaticalAnalyzer.h"
 #include "Preprocessor.h"
@@ -96,5 +96,9 @@ int main() {
     auto lexemes = parser.GetResult();
     GrammaticalAnalyzer grammatical_analyzer(lexemes, {";", "REPEAT", "LOOP", "ELSE", "ENDOF", ":", "ENDIF", "WHILE"});
     grammatical_analyzer.Analyze();
-    grammatical_analyzer.resulting_environment.code->Execute(grammatical_analyzer.resulting_environment);
+    try {
+        grammatical_analyzer.resulting_environment.code->Execute(grammatical_analyzer.resulting_environment);
+    } catch (std::exception& e) {
+        std::cout << e.what() << '\n';
+    }
 }

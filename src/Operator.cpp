@@ -6,7 +6,7 @@ Operator::Operator(std::string text) : text(text) {
 }
 
 Executable::ReturnStatus Operator::Execute(Environment& environment) {
-    if (operators_pointers.find(text) != operators_pointers.end()) {
+    if (operators_pointers.contains(text)) {
         return operators_pointers[text](environment);
     }
     if (environment.functions.contains(text)) {
@@ -22,7 +22,11 @@ Executable::ReturnStatus Operator::Execute(Environment& environment) {
 }
 
 Executable::ReturnStatus Operator::FunctionCall(Environment& environment) {
-    return environment.functions[text]->Execute(environment);
+    auto status = environment.functions[text]->Execute(environment);
+    if (status == ReturnStatus::kLeaveFunction) {
+        status = ReturnStatus::kSuccess;
+    }
+    return status;
 }
 
 Executable::ReturnStatus Operator::VariableUse(Environment &environment) {
@@ -322,13 +326,22 @@ Executable::ReturnStatus BreakOperator(Environment& environment) {
 }
 
 Executable::ReturnStatus ContinueOperator(Environment& environment) {
-    return Executable::ReturnStatus::kLeaveLoop;
+    return Executable::ReturnStatus::kContinueLoop;
 }
 
 Executable::ReturnStatus ReturnOperator(Environment& environment) {
     return Executable::ReturnStatus::kLeaveFunction;
 }
 
+Executable::ReturnStatus ToCellOperator(Environment& environment) {
+    environment.PushOnStack(environment.PopStack().Convert<int64_t>());
+    return Executable::ReturnStatus::kSuccess;
+}
+
+Executable::ReturnStatus ToFloatOperator(Environment& environment) {
+    environment.PushOnStack(environment.PopStack().Convert<double>());
+    return Executable::ReturnStatus::kSuccess;
+}
 
 std::map<
     std::string,
@@ -378,4 +391,6 @@ std::map<
     {"leave", BreakOperator},
     {"continue", ContinueOperator},
     {"return", ReturnOperator},
+    {"tocell", ToCellOperator},
+    {"tofloat", ToFloatOperator},
 };

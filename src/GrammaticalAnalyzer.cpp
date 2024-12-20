@@ -11,10 +11,11 @@
 
 void GrammaticalAnalyzer::Analyze() {
     try {
+        defined_identifiers.insert("I"); //special variable for index of most inner for loop
         Program();
         for (auto l: lexemes_) {
             if (l.type == Lexeme::LexemeType::kIdentifier &&
-                defined_identifiers.find(l.text) == defined_identifiers.end()) {
+                defined_identifiers.contains(l.text)) {
                 ThrowUndefinedException(l);
             }
         }
@@ -114,7 +115,7 @@ std::shared_ptr<Executable> GrammaticalAnalyzer::FunctionDefinition() {
         ThrowSyntaxException("identifier");
     }
     std::string function_name = GetCurrentLexeme().text;
-    if (defined_identifiers.find(function_name) != defined_identifiers.end()) {
+    if (defined_identifiers.contains(function_name)) {
         ThrowRedefinitionException(GetCurrentLexeme());
     }
     defined_identifiers.insert(function_name);
@@ -130,9 +131,7 @@ std::shared_ptr<Executable> GrammaticalAnalyzer::FunctionDefinition() {
 
 std::shared_ptr<Executable> GrammaticalAnalyzer::CodeBlock() {
     std::shared_ptr<Codeblock> result(new Codeblock);
-    while (!IsFished() &&
-           code_block_enders_.find(GetCurrentLexeme().text)
-           == code_block_enders_.end()) {
+    while (!IsFished() && code_block_enders_.contains(GetCurrentLexeme().text)) {
         std::shared_ptr<Executable> block;
         if (GetCurrentLexeme().type == Lexeme::LexemeType::kKeyword) {
             block = ControlFlowConstruct();
@@ -208,7 +207,7 @@ std::shared_ptr<Executable> GrammaticalAnalyzer::ControlFlowConstruct() {
 }
 
 std::shared_ptr<Executable> GrammaticalAnalyzer::If() {
-    std::shared_ptr<class If> result;
+    std::shared_ptr<class If> result(new class If);
     if (GetCurrentLexeme().text != "IF") {
         ThrowSyntaxException("IF");
     }
@@ -320,7 +319,7 @@ std::shared_ptr<Executable> GrammaticalAnalyzer::ArrayDefinition() {
     if (GetCurrentLexeme().type != Lexeme::LexemeType::kIdentifier) {
         ThrowSyntaxException("identifier");
     }
-    if (defined_identifiers.find(GetCurrentLexeme().text) != defined_identifiers.end()) {
+    if (defined_identifiers.contains(GetCurrentLexeme().text)) {
         ThrowRedefinitionException(GetCurrentLexeme());
     }
     result->name = GetCurrentLexeme().text;

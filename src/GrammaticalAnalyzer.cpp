@@ -131,7 +131,7 @@ std::shared_ptr<Executable> GrammaticalAnalyzer::FunctionDefinition() {
 
 std::shared_ptr<Executable> GrammaticalAnalyzer::CodeBlock() {
     std::shared_ptr<Codeblock> result(new Codeblock);
-    while (!IsFished() && code_block_enders_.contains(GetCurrentLexeme().text)) {
+    while (!IsFished() && !code_block_enders_.contains(GetCurrentLexeme().text)) {
         std::shared_ptr<Executable> block;
         if (GetCurrentLexeme().type == Lexeme::LexemeType::kKeyword) {
             block = ControlFlowConstruct();

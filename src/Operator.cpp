@@ -289,6 +289,9 @@ Executable::ReturnStatus InputOperator<std::string>(Environment& environment) {
     std::string s;
     std::cin >> s;
     char* cs = new char[s.size()];
+    for (int i = 0; i < s.size(); ++i) {
+        cs[i] = s[i];
+    }
     environment.PushOnStack((int64_t)cs);
     environment.PushOnStack((int64_t)s.size());
     return Executable::ReturnStatus::kSuccess;

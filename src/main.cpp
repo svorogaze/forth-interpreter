@@ -27,6 +27,7 @@ int main() {
 
     std::vector<std::string> operators = {
         "dup",
+        "2dup",
         "drop",
         "swap",
         "over",

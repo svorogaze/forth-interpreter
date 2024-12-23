@@ -160,6 +160,16 @@ Executable::ReturnStatus DupOperator(Environment& environment) {
     return Executable::ReturnStatus::kSuccess;
 }
 
+Executable::ReturnStatus TwoDupOperator(Environment& environment) {
+    auto w2 = environment.PopStack();
+    auto w1 = environment.PopStack();
+    environment.PushOnStack(w1);
+    environment.PushOnStack(w2);
+    environment.PushOnStack(w1);
+    environment.PushOnStack(w2);
+    return Executable::ReturnStatus::kSuccess;
+}
+
 Executable::ReturnStatus DropOperator(Environment& environment) {
     environment.PopStack();
     return Executable::ReturnStatus::kSuccess;
@@ -366,6 +376,7 @@ std::map<
     {"xor", XorOperator},
     {"not", NotOperator},
     {"dup", DupOperator},
+    {"2dup", TwoDupOperator},
     {"drop", DropOperator},
     {"swap", SwapOperator},
     {"over", OverOperator},

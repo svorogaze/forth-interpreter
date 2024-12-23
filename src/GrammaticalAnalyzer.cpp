@@ -15,7 +15,7 @@ void GrammaticalAnalyzer::Analyze() {
         Program();
         for (auto l: lexemes_) {
             if (l.type == Lexeme::LexemeType::kIdentifier &&
-                defined_identifiers.contains(l.text)) {
+                !defined_identifiers.contains(l.text)) {
                 ThrowUndefinedException(l);
             }
         }
@@ -203,6 +203,7 @@ std::shared_ptr<Executable> GrammaticalAnalyzer::ControlFlowConstruct() {
         return Switch();
     } else {
         ThrowSyntaxException("Control flow construct");
+        return nullptr;
     }
 }
 

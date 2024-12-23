@@ -2,6 +2,7 @@
 #include "Literals.h"
 #include <iostream>
 #include "StackElement.h"
+#include <cstring>
 Operator::Operator(std::string text) : text(text) {
 }
 
